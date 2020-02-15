@@ -4,9 +4,9 @@ let mongoose = require('mongoose');
 
 let Schema = mongoose.Schema;
 let EtiquetaSchema = new CursoSchema({
-    etiqueta: String,
-    referenciaID: {type: Schema.ObjectId, ref: 'cursos'}
+    etiqueta: {type: String, unique: true, lowercase: true, required: [true, 'etiqueta requerida']},
+    referenciaID: [{type: String}]
 })
 
 
-module.exports = CursoSchema;
+module.exports = mongoose.model('etiquetas', EtiquetaSchema);

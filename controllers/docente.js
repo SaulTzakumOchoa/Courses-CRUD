@@ -2,6 +2,7 @@
 
 const ModelDocente = require('../models/docente');
 const bcrypt = require('bcrypt-nodejs');
+const paginate = require('mongoose-pagination');
 
 function home(req, res) {
         
@@ -51,7 +52,7 @@ function crearDocente(req, res) {
 
         ModelDocente.find({correo: params.correo}, (err,duplicado) => {
             if(err){
-                res.status(500).send({
+                return res.status(500).send({
                     message: 'Correo duplicado',
                     err,
                     status: false,
@@ -59,14 +60,14 @@ function crearDocente(req, res) {
             }
 
             if(duplicado && duplicado.length >= 1){
-                res.status(200).send({
+                return res.status(200).send({
                     message: 'Docente existente',
                     status: false
                 })
             } else{
                 bcrypt.hash(params.password, null, null, (err, hash) => {
                     if(err){
-                        res.status(500).send({
+                        return res.status(500).send({
                             message: 'Error al insertar docente',
                             err,
                             status: false
@@ -75,7 +76,7 @@ function crearDocente(req, res) {
                     Docente.password = hash;
                     
                     Docente.save((err, docenteDB) => {
-                        res.status(200).send({
+                        return res.status(200).send({
                             docente: docenteDB,
                             status: true
                         })
@@ -86,8 +87,129 @@ function crearDocente(req, res) {
 
 }
 
+function ObtenerDocente(req, res){
+    let params = req.params;
+    let id = params.id;
+
+    ModelDocente.findById(id, {password: 0},(err, docenteDB) => {
+        if(err){
+            return res.status(500).send({
+                ok: false,
+                err
+            })
+        }
+
+        if(!docenteDB){
+            return res.status(400).send({
+                ok: false,
+                err: {
+                    message: 'Docente no encontrado'
+                }
+            })
+        }
+
+        return res.send({
+            ok: true,
+            docente: docenteDB
+        })
+    })
+}
+
+function ObtenerDocentes(req, res){
+    let params = req.params;
+    
+    let page = Number(params.page) || 1;
+    let itemPerPage = Number(params.itemPerPage) || 5;
+   
+    ModelDocente.find({}, {password: 0}).paginate(page, itemPerPage,(err, docentes, total) => {
+        if(err){
+            return res.status(500).send({
+                ok: false,
+                err
+            })
+        }
+
+        if(!docentes){
+            return res.status(400).send({
+                ok: false,
+                err: {
+                    message: 'Docentes no encontrados'
+                }
+            })
+        }
+
+        return res.send({
+            ok: true,
+            docentes,
+            pages: Math.ceil(total/itemPerPage)
+        })
+    })
+}
+
+function login(req, res){
+    let params = req.body;
+    let password = params.password;
+    let email = params.email;
+    
+    ModelDocente.findOne({email},(err, docenteDB) => {
+        if(err){
+            return res.status(500).send({
+                ok: false,
+                err,
+            })
+        }
+        
+        if(!docenteDB){
+            return res.status(500).send({
+                ok: false,
+                err: {
+                    message:'Usuario o contraseña incorrectos'
+                }
+            })
+        }
+
+        bcrypt.compare(password, docenteDB.password, (err, verificado) => {
+            if(err){
+                return res.status(500).send({
+                    ok: false,
+                    err
+                })
+            }
+
+            if(!verificado){
+                return res.status(400).send({
+                    ok: false,
+                    err: {
+                        message: 'Usuario o Contraseña incorrectos'
+                    }
+                })
+            }
+
+            docenteDB.password = undefined;
+
+            res.status(200).send({
+                ok: true,
+                docente: docenteDB
+            })
+        });
+    })
+}
+
+function actualizarDocente(req, res){
+
+}
+
+let eliminarDocente = (req, res) => {
+
+}
+
 module.exports = {
     home,
     insert,
-    crearDocente
+    crearDocente,
+    ObtenerDocente,
+    ObtenerDocentes,
+    login,
+    actualizarDocente,
+    eliminarDocente,
 }
