@@ -11,7 +11,7 @@ let EstudianteSchema = new Schema({
         required: true,
         match: [/^[a-zA-Z ]+$/]
     },
-    cargo: type = String,
+    cargo: {type: String},
     correo: {
         type: String,
         lowercase: true,
@@ -23,8 +23,8 @@ let EstudianteSchema = new Schema({
     },
     conocimientosPrevios: {type: String},
     curso: {type: Schema.Types.ObjectId, ref: 'cursos'},
-    tokenCalificacion: {type = String},
-    statusCalificacion: {type = Boolean}
+    tokenCalificacion: {type: String},
+    statusCalificacion: {type: Boolean}
 })
 
 module.exports = mongoose.model('estudiantes', EstudianteSchema);

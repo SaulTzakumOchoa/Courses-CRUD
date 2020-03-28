@@ -10,11 +10,10 @@ let mongoose = require('mongoose');
 
 let statusValidos = {
     values: [1, 2, 3, 4, 5],
-    message: '{VALUE} no es un status válido'
 }
 
 let Schema = mongoose.Schema;
-let CursoSchema = new CursoSchema({
+let CursoSchema = new Schema({
     nombre: {type: String, minlength: 4, required: true},
     temarioFile: {type: String},
     temario: {type: Object, required: true},
@@ -23,7 +22,7 @@ let CursoSchema = new CursoSchema({
     docente: {type: Schema.Types.ObjectId, ref: 'docentes'},
     fechaInicio: {type: Date},
     fechaFinal: {type: Date},
-    status: {type: Number, enum: statusValidos},
+    status: {type: Number, enum: [1, 2, 3, 4, 5]},
     hora: {type: String, required: true},
     duracion: {type: Number, required: true},
     valoracion: {
@@ -36,7 +35,7 @@ let CursoSchema = new CursoSchema({
     imagen: {type: String, default: null},
     registrados: [{type: Schema.Types.ObjectId, ref: 'estudiantes'}],
     descripcion: {type:String, required: true},
-    requisitos: {type:String, default: 'No existen requisitos'},
+    requisitos: [{type:String, default: 'No existen requisitos'}],
     ubicacion: {type:String},
     habilitarPublico: {type:Boolean}
 })

@@ -3,6 +3,7 @@
 const ModelDocente = require('../models/docente');
 const bcrypt = require('bcrypt-nodejs');
 const paginate = require('mongoose-pagination');
+const {auth} = require('../utils/jwt-encode');
 
 function home(req, res) {
         
@@ -186,16 +187,53 @@ function login(req, res){
             }
 
             docenteDB.password = undefined;
+            let token = auth(docenteDB);
 
-            res.status(200).send({
+            return res.status(200).send({
                 ok: true,
-                docente: docenteDB
+                docente: docenteDB,
+                token
             })
         });
     })
 }
 
 function actualizarDocente(req, res){
+    const id = req.params.id;
+    const update = req.body;
+
+    if(id != req.docente.sub){
+        return res.status(500).send({
+            ok: false,
+            err:{
+                message: 'El docente no tiene permisos',
+                ok: false
+            }
+        })
+    }
+
+    ModelDocente.findOneAndUpdate({_id:id}, update, {new: true}, (err, docenteDB) => {
+        if(err){
+            return res.status(500).send({
+                ok: false,
+                err
+            })
+        }
+
+        if(!docenteDB){
+            return res.status(400).send({
+                ok: false,
+                err: {
+                    message: 'Docente no encontrado'
+                }
+            })
+        }
+
+        return res.send({
+            ok: true,
+            docente: docenteDB
+        })
+    })
 
 }
 
